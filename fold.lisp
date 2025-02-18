@@ -1,3 +1,13 @@
+;;; -*- Lisp -*-
+
+(in-package "FOLD")
+
+(defparameter *truncate-fold* nil
+  "If true, fold-left and fold-right on multiple sequences will
+ stop folding when any of the sequences is exhausted.")
+
+(declaim (ftype (function ((function (t t &rest t) t) t t &rest t) t) fold-left fold-right))
+
 (defun fold-left (function initial list &rest lists)
   (labels ((fold-left-1 (state item tail)
              (declare (optimize (debug 0) (safety 0) (speed 3)))
