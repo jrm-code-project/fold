@@ -39,3 +39,14 @@ Continuable error
 > (fold-right (lambda (l r) `(F ,l ,r)) '(a b c) 'final)
 (F A (F B (F C FINAL)))
 ```
+
+Notes:
+
+- Fold-left is iterative and should not blow the stack.
+- Fold-left is optimized for lists, simple-strings and simple-vectors.
+- Fold-left is unoptimized for mixed arguments of lists and other sequence types.
+
+- Fold-right is recursive and may overflow the stack on long lists.
+- Fold-right is optimized on lists.
+- Fold-right is not optimized on other sequence types.
+  
