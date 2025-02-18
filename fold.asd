@@ -10,6 +10,6 @@
   :mailto "eval.apply@gmail.com"
   :maintainer "Joe Marshall <eval.apply@gmail.com>"
   :source-control (:git "https://github.com/jrm-code-project/fold.git")
-  :version "1.0.1"
+  :version "1.0.2"
   :components ((:file "fold" :depends-on ("package"))
                (:file "package")))
