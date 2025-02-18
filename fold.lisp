@@ -1,19 +1,11 @@
-;;; -*- Lisp -*-
-
-(in-package "FOLD")
-
-(defparameter *truncate-fold* nil
-  "If true, fold-left and fold-right on multiple sequences will
- stop folding when any of the sequences is exhausted.")
-
-(declaim (ftype (function ((function (t t &rest t) t) t t &rest t) t) fold-left))
 (defun fold-left (function initial list &rest lists)
   (labels ((fold-left-1 (state item tail)
              (declare (optimize (debug 0) (safety 0) (speed 3)))
              (cond ((consp tail)
                     (fold-left-1 (funcall function state item) (car tail) (cdr tail)))
                    ((null tail) (funcall function state item))
-                   (t (error "Dotted list encountered by fold-left."))))
+                   (t (cerror "Ignore dotted tail." "Dotted list encountered by fold-left.")
+                      (funcall function state item))))
 
            (fold-left-1-simple-string (state string)
              (declare (optimize (debug 0) (safety 0) (speed 3))
@@ -40,14 +32,18 @@
                    ((or (every #'null tails)
                         *truncate-fold*)
                     (apply function state items))
-                   (t (error "Lists of different lengths or dotted list in fold-left."))))
+                   (t (cerror "Truncate lists to same length."
+                              "Lists of different lengths or dotted list in fold-left.")
+                      (apply function state items))))
 
            (fold-left-n-sequence (state sequences)
              (cond (*truncate-fold*
                     (fold-left-n-sequence-loop state sequences 0 (apply #'min (map 'list #'length sequences))))
                    ((every (lambda (s) (= (length s) (length (car sequences)))) (cdr sequences))
                     (fold-left-n-sequence-loop state sequences 0 (length (car sequences))))
-                   (t (error "Sequences of different lengths in fold-left."))))
+                   (t (cerror "Truncate sequences to shortest length."
+                              "Sequences of different lengths in fold-left.")
+                      (fold-left-n-sequence-loop state sequences 0 (apply #'min (map 'list #'length sequences))))))
            
            (fold-left-n-sequence-loop (state sequences index limit)
              (if (>= index limit)
@@ -77,7 +73,9 @@
              (cond ((consp tail)
                     (funcall function (car tail) (fold-right-1 (cdr tail) final)))
                    ((null tail) final)
-                   (t (error "Dotted list encountered by fold-right."))))
+                   (t (cerror "Ignore dotted tail."
+                              "Dotted list encountered by fold-right.")
+                      final)))
 
            (fold-right-1-sequence (sequence final)
              (do ((index (1- (length sequence)) (1- index))
@@ -91,7 +89,9 @@
                    ((or (every #'null tails)
                         *truncate-fold*)
                     final)
-                   (t (error "Lists of different lengths or dotted list in fold-right."))))
+                   (t (cerror "Truncate longer lists."
+                              "Lists of different lengths or dotted list in fold-right.")
+                      final)))
 
            (fold-right-n-sequences (sequences final start)
              (do ((index (1- start) (1- index))
@@ -112,6 +112,8 @@
                         (fold-right-n-sequences sequences final* (apply #'min (map 'list #'length sequences))))
                        ((every (lambda (s) (= (length s) (length (car sequences)))) sequences)
                         (fold-right-n-sequences sequences final* (length (car sequences))))
-                       (t (error "Sequences of different lengths in fold-right."))))
+                       (t (cerror "Truncate longer sequences."
+                                  "Sequences of different lengths in fold-right.")
+                          (fold-right-n-sequences sequences final* (apply #'min (map 'list #'length sequences))))))
                 ((every #'null sequences) final*)
                 (t (error "Non sequence in fold-right.")))))))
