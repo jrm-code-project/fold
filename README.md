@@ -1,6 +1,15 @@
 # fold
-FOLD-LEFT and FOLD-RIGHT
+`FOLD-LEFT` and `FOLD-RIGHT`
 
+## Installation
+
+ - Clone this repository into `~/quicklisp/local-projects/fold/`
+
+ - `(ql:quickload "fold")`
+
+ - In your package definitions, add "FOLD" to the used packages list.
+
+---
 Examples:
 ```
 ;; Fold-left a function over a list.
