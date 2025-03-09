@@ -2,7 +2,7 @@
 
 (in-package "FOLD")
 
-(defparameter *truncate-fold* nil
+(defparameter *truncate-fold* t
   "If true, fold-left and fold-right on multiple sequences will
  stop folding when any of the sequences is exhausted.")
 
@@ -128,8 +128,8 @@
 
           (if (null args)
               (cond ((consp list)           (fold-right-1 list))
-                    ((typep list 'sequence) (fold-right-1-sequence list))
                     ((null list) final)
+                    ((typep list 'sequence) (fold-right-1-sequence list))
                     (t (error "Non sequence in fold-right.")))
               (let ((sequences (list* list final (butlast args)))
                     (final*    (car (last args))))
@@ -162,3 +162,51 @@
                     (fold-right #'+ '(1 2 3 4 5) '(1 2 3 4) '(1 2 3 4) 0)))
                  nil)))
 ||#
+
+(defun alist-fold-left (fn init alist)
+  (fold-left (lambda (acc entry)
+               (funcall fn acc (car entry) (cdr entry)))
+             init
+             alist))
+
+(defun alist-fold-right (fn alist final)
+  (fold-left (lambda (acc entry)
+                (funcall fn (car entry) (cdr entry) acc))
+              final
+              (reverse alist)))
+
+(defun hash-table-fold-left (fn init hashtable)
+  (check-type fn function)
+  (with-hash-table-iterator (next hashtable)
+    (labels ((iter (fn acc)
+               (declare (type function fn))
+               (multiple-value-bind (entry? key value) (next)
+                 (if entry?
+                     (iter fn (funcall fn acc key value))
+                     acc))))
+      (iter fn init))))
+
+(defun hash-table-fold-right (fn hashtable final)
+  (check-type fn function)
+  (with-hash-table-iterator (next hashtable)
+    (labels ((iter (fn acc)
+               (declare (type function fn))
+               (multiple-value-bind (entry? key value) (next)
+                 (if entry?
+                     (iter fn (funcall fn key value acc))
+                     acc))))
+      (iter fn final))))
+
+(defun plist-fold-left (fn init plist)
+  (cond ((consp plist) (if (consp (cdr plist))
+                           (plist-fold-left fn (funcall fn init (car plist) (cadr plist))
+                                            (cddr plist))
+                           (error "Improper plist.")))
+        ((null plist) init)
+        (t (error "Improper plist."))))
+
+(defun plist-fold-right (fn plist final)
+  (plist-fold-left (lambda (acc value key)
+                     (funcall fn key value acc))
+                   final
+                   (reverse plist)))
