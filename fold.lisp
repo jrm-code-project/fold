@@ -21,6 +21,12 @@
                             "Dotted list in fold-left."))
                   (funcall function state item))))
 
+           (fold-left-1-package (package)
+             (let ((state initial))
+               (do-external-symbols (sym package state)
+                 (setq state (funcall function state sym)))
+               state))
+
            (fold-left-1-simple-string (string)
              (declare (optimize (debug 0) (safety 0) (speed 3))
                       (type simple-string string))
@@ -43,8 +49,8 @@
            (fold-left-n (lists)
              (do ((state initial (apply function state items))
                   (items (map 'list #'car lists) (map 'list #'car tails))
-                  (tails (map 'list #'cdr lists) (map 'list #'cdr tails)))
-                 ((not (every #'consp tails))
+                  (tails (map 'list #'cdr lists) (map 'list #'cdr tails))) 
+                ((not (every #'consp tails))
                   (unless (or (every #'null tails)
                               *truncate-fold*)
                     (cerror "Truncate lists to same length."
