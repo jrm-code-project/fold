@@ -86,6 +86,11 @@
                 ((every #'null lists*) initial)
                 (t (error "Non sequence in fold-left.")))))))
 
+(defun expand-fold-left (function-spec initial list &rest lists)
+  (apply #'fold-left (lambda (form &rest items)
+                       `(,function-spec ,form ,@items))
+         initial (cons list lists)))
+
 #||
 (defun test-fold-left ()
   (assert (eql (fold-left #'+ 0 '(1 2 3 4 5)) 15))
