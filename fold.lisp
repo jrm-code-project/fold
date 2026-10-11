@@ -91,21 +91,6 @@
                        `(,function-spec ,form ,@items))
          initial (cons list lists)))
 
-#||
-(defun test-fold-left ()
-  (assert (eql (fold-left #'+ 0 '(1 2 3 4 5)) 15))
-  (assert (equal (fold-left #'list 0 "12345") '(((((0 #\1) #\2) #\3) #\4) #\5)))
-  (assert (equal (fold-left #'list nil #(a b c)) '(((NIL A) B) C)))
-  (assert (equal (fold-left #'list nil '(a b c) #(d e f)) '(((NIL A D) B E) C F)))
-  (assert (equal (let ((*truncate-fold* t))
-                   (fold-left #'+ 0 '(1 2 3 4 5) #(1 2 3 4) '(1 2 3)))
-                 18))
-  (assert (equal (ignore-errors
-                  (let ((*truncate-fold* nil))
-                    (fold-left #'+ 0 '(1 2 3 4 5) '(1 2 3 4) '(1 2 3 4))))
-                 nil)))
-||#
-
 (defun fold-right (function list final &rest args)
   (labels ((fold-right-1 (list)
              (cond ((consp list)
@@ -159,21 +144,6 @@
                       ((every #'null sequences) final*)
                       (t (error "Non sequence in fold-right.")))))))
 
-#||
-(defun test-fold-right ()
-  (assert (eql (fold-right #'+ '(1 2 3 4 5) 0) 15))
-  (assert (equal (fold-right #'list "12345" 0) '(#\1 (#\2 (#\3 (#\4 (#\5 0)))))))
-  (assert (equal (fold-right #'list #(a b c) nil) '(A (B (C NIL)))))
-  (assert (equal (fold-right #'list '(a b c) #(d e f) nil) '(A D (B E (C F NIL)))))
-  (assert (equal (let ((*truncate-fold* t))
-                   (fold-right #'+ '(1 2 3 4 5) #(1 2 3 4) '(1 2 3) 0))
-                 18))
-  (assert (equal (ignore-errors
-                  (let ((*truncate-fold* nil))
-                    (fold-right #'+ '(1 2 3 4 5) '(1 2 3 4) '(1 2 3 4) 0)))
-                 nil)))
-||#
-
 (defun alist-fold-left (fn init alist)
   (fold-left (lambda (acc entry)
                (funcall fn acc (car entry) (cdr entry)))
@@ -221,3 +191,4 @@
                      (funcall fn key value acc))
                    final
                    (reverse plist)))
+
